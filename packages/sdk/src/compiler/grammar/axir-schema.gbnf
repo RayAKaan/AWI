@@ -1,0 +1,97 @@
+root ::= "{" ws axir-fields ws "}"
+
+axir-fields ::=
+  "\"workflow\"" ":" workflow ws ","
+  ws "\"intents\"" ":" intents ws ","
+  ws "\"selectors\"" ":" selectors ws ","
+  ws "\"fields\"" ":" fields
+  ["," ws "\"container\"" ":" string]
+  ["," ws "\"model_used\"" ":" string]
+  ["," ws "\"tokens_used\"" ":" number]
+  ["," ws "\"compilation_time_ms\"" ":" number]
+
+workflow ::=
+  "{" ws
+    "\"nodes\"" ":" "{" ws node-list ws "}" ws ","
+    ws "\"edges\"" ":" "[" ws edge-list ws "]" ws ","
+    ws "\"entry_points\"" ":" "[" ws string-list ws "]" ws ","
+    ws "\"exit_points\"" ":" "[" ws string-list ws "]" ws ","
+    ws "\"domain\"" ":" string ws ","
+    ws "\"page_type\"" ":" page-type
+    ["," ws "\"structure_hash\"" ":" string]
+  ws "}"
+
+node-list ::= [node-pair ("," ws node-pair)*]
+node-pair ::= string ":" "{" ws
+  "\"element_type\"" ":" element-type ws ","
+  ws "\"semantic_role\"" ":" string ws ","
+  ws "\"intent\"" ":" string ws ","
+  ws "\"tag\"" ":" string ws ","
+  ws "\"selector_candidates\"" ":" "[" ws selector-list ws "]"
+  ["," ws "\"parent_id\"" ":" string]
+  ["," ws "\"children_ids\"" ":" "[" ws string-list ws "]"]
+  ["," ws "\"aria_label\"" ":" string]
+  ["," ws "\"aria_role\"" ":" string]
+  ["," ws "\"text_content\"" ":" string]
+  "," ws "\"confidence\"" ":" number
+  ["," ws "\"reasoning\"" ":" string]
+ws "}"
+
+element-type ::=
+  "\"button\"" | "\"link\"" | "\"input\"" | "\"form\"" |
+  "\"navigation\"" | "\"search\"" | "\"filter\"" | "\"sort\"" |
+  "\"pagination\"" | "\"container\"" | "\"list\"" | "\"item\"" |
+  "\"heading\"" | "\"text\"" | "\"image\"" | "\"unknown\""
+
+page-type ::=
+  "\"landing\"" | "\"search\"" | "\"listing\"" | "\"detail\"" |
+  "\"form\"" | "\"checkout\"" | "\"dashboard\"" | "\"unknown\""
+
+edge-list ::= [edge ("," ws edge)*]
+edge ::= "{" ws
+  "\"from_node\"" ":" string ws ","
+  ws "\"to_node\"" ":" string ws ","
+  ws "\"action\"" ":" string
+  ["," ws "\"condition\"" ":" string]
+  ["," ws "\"probability\"" ":" number]
+ws "}"
+
+selector-list ::= [selector ("," ws selector)*]
+selector ::= "{" ws
+  "\"type\"" ":" selector-type ws ","
+  ws "\"value\"" ":" string ws ","
+  ws "\"priority\"" ":" number
+  ["," ws "\"confidence\"" ":" number]
+ws "}"
+
+selector-type ::= "\"css\"" | "\"semantic\"" | "\"text\"" | "\"attribute\""
+
+intents ::= "[" ws [intent ("," ws intent)*] ws "]"
+intent ::= "{" ws
+  "\"intent\"" ":" string ws ","
+  ws "\"action\"" ":" string ws ","
+  ws "\"parameters\"" ":" "[" ws [string ("," ws string)*] ws "]" ws ","
+  ws "\"context\"" ":" string
+ws "}"
+
+fields ::= "[" ws [field ("," ws field)*] ws "]"
+field ::= "{" ws
+  "\"name\"" ":" string ws ","
+  ws "\"selector\"" ":" string
+  ["," ws "\"transform\"" ":" string]
+  ["," ws "\"required\"" ":" boolean]
+ws "}"
+
+selectors ::= "{" ws [selector-pair ("," ws selector-pair)*] ws "}"
+selector-pair ::= string ":" "[" ws selector-list ws "]"
+
+string-list ::= [string ("," ws string)*]
+
+string ::= "\"" char* "\""
+char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F]{4})
+
+number ::= ["-"]? ("0" | [1-9] [0-9]*) ([.] [0-9]+)? ([eE] ["-"]? [0-9]+)?
+
+boolean ::= "true" | "false"
+
+ws ::= [ \t\n\r]*

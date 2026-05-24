@@ -1,0 +1,8 @@
+{
+  "name": "awi-node-example",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@awi-protocol/sdk": "workspace:*"
+  }
+}

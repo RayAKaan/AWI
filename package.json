@@ -1,0 +1,23 @@
+{
+  "name": "@awi-protocol/monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AWI Protocol JavaScript SDK Monorepo",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "turbo": "^2.0.0"
+  },
+  "packageManager": "pnpm@11.2.2",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

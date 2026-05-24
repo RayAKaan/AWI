@@ -1,0 +1,51 @@
+{
+  "name": "@awi-protocol/sdk",
+  "version": "0.2.0",
+  "description": "AWI (Agent Web Interface) SDK — deterministic browser automation for AI agents",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": ["dist", "src/compiler/grammar"],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "lint": "tsc --noEmit && eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cross-fetch": "^4.0.0"
+  },
+  "optionalDependencies": {
+    "node-llama-cpp": "^3.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RayAKaan/AWI.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": ["awi", "agent-web-interface", "browser-automation", "ai-agent", "web-scraping", "deterministic", "playwright", "axir"]
+}
