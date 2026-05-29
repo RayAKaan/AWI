@@ -1,13 +1,22 @@
 {
   "name": "@awi-protocol/react",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "React hooks for AWI (Agent Web Interface)",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --external react",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "awi",
@@ -24,7 +33,8 @@
     "react": "^18.0.0"
   },
   "dependencies": {
-    "@awi-protocol/sdk": "workspace:*"
+    "@awi-protocol/sdk": "workspace:*",
+    "@awi-protocol/types": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

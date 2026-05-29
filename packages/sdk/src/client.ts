@@ -5,7 +5,6 @@
  * Supports proxy mode (server executes browser) and advisory mode (returns blueprint).
  */
 
-import fetch from 'cross-fetch';
 import type {
   AgentRequest,
   AgentResponse,
@@ -15,6 +14,8 @@ import type {
   FeedbackRequest,
   DelegationRequest,
   ExecutionMetrics,
+  DiscoverRequest,
+  DiscoverResponse,
 } from './types';
 
 export class AWIError extends Error {
@@ -38,8 +39,11 @@ export class AWIClient {
   private retries: number;
 
   constructor(options: AWIClientOptions) {
+    if (!options.endpoint) {
+      throw new Error('AWIClient requires an endpoint');
+    }
     this.endpoint = options.endpoint.replace(/\/$/, '');
-    this.certificate = options.certificate;
+    this.certificate = options.certificate || '';
     this.timeout = options.timeout || 30000;
     this.retries = options.retries || 3;
   }
@@ -79,14 +83,14 @@ export class AWIClient {
     if (!advisory.success || !advisory.data) {
       return {
         ...advisory,
-        data: null,
-      } as AgentResponse<T>;
+        data: undefined,
+      } as unknown as AgentResponse<T>;
     }
 
     // Execute locally
     const startTime = Date.now();
     try {
-      const data = await localExecutor(advisory.data, request.params);
+      const data = await localExecutor(advisory.data, request.params || {});
       const latency = Date.now() - startTime;
 
       return {
@@ -99,12 +103,11 @@ export class AWIClient {
           mode: 'advisory-local',
         },
         execution_path: ['advisory', 'local-execution'],
-        axir_intent: advisory.axir_intent,
       };
     } catch (error) {
       return {
         success: false,
-        data: null,
+        data: undefined,
         errors: [{
           code: 'LOCAL_EXECUTION_ERROR',
           message: error instanceof Error ? error.message : 'Unknown error',
@@ -164,6 +167,14 @@ export class AWIClient {
     if (limit) params.set('limit', String(limit));
 
     return this._request(`/v1/registry/search?${params.toString()}`, undefined, 'GET');
+  }
+
+  /**
+   * Discover everything about a website.
+   * Give any URL, get back a complete site manual.
+   */
+  async discover(request: DiscoverRequest): Promise<DiscoverResponse> {
+    return this._request<DiscoverResponse>('/v1/discover', request);
   }
 
   /**

@@ -1,22 +1,105 @@
 # @awi-protocol/sdk
 
-**AWI (Agent Web Interface) JavaScript SDK**
-
-Deterministic web automation for AI agents. Transform any website into a structured, machine-readable API.
+**Agent Web Interface SDK** — turn any website into a deterministic API for AI agents.
 
 ## Installation
 
 ```bash
 npm install @awi-protocol/sdk
-# or
-yarn add @awi-protocol/sdk
-# or
-pnpm add @awi-protocol/sdk
 ```
 
-## Quick Start
+## Zero-Config Usage (v2.1)
 
-### Proxy Mode (Server Executes Browser)
+Discover any website with zero setup — no API key needed:
+
+```typescript
+import { AWI } from '@awi-protocol/sdk';
+
+// Discover a website — zero auth
+const site = await AWI.discover('https://github.com');
+console.log(site.summary);
+// "GitHub is a development platform..."
+console.log(site.whatYouCanDo);
+// ["Search for content", "Explore repositories", ...]
+
+// Get an action plan for a specific goal
+const plan = await AWI.plan('https://linkedin.com/jobs', 'search for ML engineer jobs');
+for (const step of plan.actionPlan) {
+  console.log(`${step.step_number}. ${step.action}: ${step.reason}`);
+}
+```
+
+### CLI — no code needed
+
+```bash
+# Discover any website
+npx awi discover https://github.com
+
+# Get an action plan
+npx awi plan https://linkedin.com/jobs "search for ML jobs"
+
+# Execute a recipe (requires API key)
+npx awi execute awi://github.com/repos/search/v1 --query "machine learning"
+```
+
+### Result Helpers
+
+```typescript
+const result = await AWI.discover('https://github.com');
+
+// Pretty-print everything
+console.log(result.toString());
+
+// Find interactive elements by type
+const searchBar = result.findElement('search');
+const allButtons = result.findElements('button');
+
+// Check for risks
+if (result.hasRisk('captcha')) {
+  console.warn('CAPTCHA detected');
+}
+
+// Highest severity risk
+console.log(result.highestRisk?.description);
+```
+
+### Progressive Disclosure
+
+| Level | API | Auth Required |
+|-------|-----|---------------|
+| 0 — Discover | `AWI.discover(url)` | None |
+| 1 — Plan | `AWI.plan(url, goal)` | None |
+| 2 — Execute | `AWI.run(uri, params)` | API key |
+| 3 — Custom | `new AWISDK({ ... })` | API key |
+
+### Authentication (only for execution)
+
+```typescript
+// Option 1: Environment variable
+export AWI_API_KEY=awi_your_key
+
+// Option 2: Custom config
+import { AWISDK } from '@awi-protocol/sdk';
+const awi = new AWISDK({ apiKey: 'awi_your_key' });
+await awi.run('awi://linkedin.com/jobs/search/v1', { query: 'ML' });
+```
+
+### Custom Configuration
+
+```typescript
+import { AWISDK } from '@awi-protocol/sdk';
+
+const awi = new AWISDK({
+  baseUrl: 'http://localhost:8000',  // Self-hosted server
+  apiKey: process.env.AWI_API_KEY,
+  timeout: 60000,
+  retries: 3,
+});
+```
+
+## Legacy API (v0.x — `AWIClient`)
+
+Backward compatible — existing code continues to work:
 
 ```typescript
 import { AWIClient } from '@awi-protocol/sdk';
@@ -26,169 +109,69 @@ const client = new AWIClient({
   certificate: 'your-awi-jwt-token',
 });
 
-// Execute a recipe - server runs the browser
 const result = await client.execute({
   target: 'awi://linkedin.com/jobs/search/v1',
-  params: {
-    query: 'senior rust engineer',
-    location: 'remote',
-  },
+  params: { query: 'senior rust engineer' },
 });
-
-if (result.success) {
-  console.log(result.data);
-  // [{ title: "Senior Rust Engineer", company: "TechCorp", location: "Remote" }, ...]
-}
-```
-
-### Advisory Mode (Agent Executes Locally)
-
-```typescript
-// Get the recipe blueprint
-const advisory = await client.getAdvisory('awi://linkedin.com/jobs/search/v1');
-
-// Execute locally with your own browser automation
-const result = await client.executeAdvisory(
-  {
-    target: 'awi://linkedin.com/jobs/search/v1',
-    params: { query: 'rust' },
-  },
-  async (blueprint, params) => {
-    // Your local execution logic
-    // e.g., Puppeteer, Playwright, or DOM manipulation
-    return localBrowser.execute(blueprint, params);
-  }
-);
-```
-
-### Explore Unknown Sites
-
-```typescript
-// Automatically explore and generate a recipe
-const recipe = await client.explore('new-site.com', 'search', 'products');
-
-if (recipe.success) {
-  console.log('Generated recipe:', recipe.data);
-}
 ```
 
 ## Features
 
+- **Zero-Friction**: Discover any website with no signup, no API key
 - **Deterministic Execution**: Recipes guarantee consistent extraction
 - **Self-Healing**: AXIR semantic intent regenerates selectors when sites redesign
 - **Multi-Strategy Fallback**: CSS → semantic → text → attribute resolution
-- **Stealth Browser**: Undetectable automation with fingerprint rotation
-- **Agent Identity**: W3C did:key DIDs with tiered rate limiting
-- **OpenTelemetry**: Full distributed tracing
-- **Type-Safe**: Full TypeScript support with generic response types
+- **CLI Built-In**: `npx awi` works immediately, no install needed
+- **Type-Safe**: Full TypeScript support with rich result types
 
 ## API Reference
 
-### `AWIClient`
+### `AWI` (Global Singleton)
 
-#### Constructor
+| Method | Description | Auth |
+|--------|-------------|------|
+| `discover(url, opts?)` | Discover a website — full site manual | None |
+| `inspect(url)` | Quick summary of a website | None |
+| `plan(url, goal)` | Get an action plan for a goal | None |
+| `execute(url, goal, params?)` | Execute a plan (consumes resources) | API key |
+| `run(uri, params?)` | Execute an AWI URI (full power) | API key |
+
+### `AWISDK` (Configurable)
+
+Same methods as `AWI` but takes a config object:
 
 ```typescript
-new AWIClient(options: {
-  endpoint: string;      // AWI server URL
-  certificate: string;   // JWT authentication token
-  timeout?: number;      // Request timeout (ms) - default 30000
-  retries?: number;      // Retry attempts - default 3
-})
+new AWISDK({ baseUrl?, apiKey?, timeout?, retries? })
 ```
 
-#### Methods
+### `DiscoverResult` (returned by `discover`, `inspect`, `plan`, `execute`)
+
+| Property | Type |
+|----------|------|
+| `site` | `SiteIdentity` |
+| `summary` | `string` |
+| `whatYouCanDo` | `string[]` |
+| `interactiveElements` | `InteractiveElement[]` |
+| `extractableData` | `ExtractableField[]` |
+| `actionPlan` | `ActionPlanStep[]` (optional) |
+| `risks` | `RiskWarning[]` |
 
 | Method | Description |
 |--------|-------------|
-| `execute(request)` | Execute recipe in proxy mode |
-| `getAdvisory(target)` | Get recipe blueprint |
-| `executeAdvisory(request, executor)` | Get blueprint + execute locally |
-| `explore(domain, action, resource?)` | Explore unknown domain |
-| `feedback(request)` | Submit execution feedback |
-| `listRegistry(options?)` | List supported sites |
-| `searchRegistry(query, limit?)` | Search registry |
-| `delegate(request)` | Delegate to another agent |
-| `joinSession(sessionId)` | Join multi-agent session |
-| `health()` | Check server health |
+| `findElement(type)` | First element matching type |
+| `findElements(type)` | All elements matching type |
+| `hasRisk(type)` | Check if a risk type exists |
+| `toString()` | Pretty-printed site manual |
+| `toJSON()` | Raw response data |
 
-### Error Handling
+### `ExecutionResult` (returned by `run`)
 
-```typescript
-import { AWIClient, AWIError } from '@awi-protocol/sdk';
-
-try {
-  const result = await client.execute({...});
-} catch (error) {
-  if (error instanceof AWIError) {
-    console.log(error.code);      // 'RECIPE_NOT_FOUND'
-    console.log(error.statusCode); // 404
-    console.log(error.details);    // { recipe_id: '...' }
-  }
-}
-```
-
-## React Integration
-
-```bash
-npm install @awi-protocol/react
-```
-
-```tsx
-import { useAWI } from '@awi-protocol/react';
-
-function JobSearch() {
-  const { execute, loading, data, error, metrics } = useAWI({
-    endpoint: 'https://awi.example.com',
-    certificate: 'your-jwt',
-  });
-
-  const search = async (query: string) => {
-    await execute({
-      target: 'awi://linkedin.com/jobs/search/v1',
-      params: { query },
-    });
-  };
-
-  return (
-    <div>
-      {loading && <Spinner />}
-      {error && <Error message={error.message} />}
-      {data && <JobList jobs={data} />}
-      {metrics && <div>Latency: {metrics.latency_ms}ms</div>}
-    </div>
-  );
-}
-```
-
-## Site SDK (For Website Operators)
-
-```bash
-npm install @awi-protocol/site-sdk
-```
-
-```typescript
-import { AWISite } from '@awi-protocol/site-sdk';
-import express from 'express';
-
-const app = new AWISite();
-
-// Define agent-native endpoints
-app.route('/jobs/search', (req, res) => {
-  const { query, location } = req.body.params;
-  const jobs = database.search(query, location);
-
-  res.json({
-    success: true,
-    data: jobs,
-  });
-});
-
-// Mount on your Express app
-const server = express();
-server.use('/awi', app.middleware());
-server.listen(3000);
-```
+| Property | Description |
+|----------|-------------|
+| `ok` | Success and no errors |
+| `data` | Execution response data |
+| `latencyMs` | Execution latency in ms |
+| `toString()` | Pretty-printed result |
 
 ## License
 

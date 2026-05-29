@@ -1,10 +1,14 @@
 {
   "name": "@awi-protocol/sdk",
-  "version": "0.2.0",
-  "description": "AWI (Agent Web Interface) SDK — deterministic browser automation for AI agents",
+  "version": "0.3.0",
+  "description": "Agent Web Interface SDK — Decentralized, client-side web automation",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "awi": "dist/cli.js",
+    "awi-author": "dist/author-cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,17 +16,24 @@
       "import": "./dist/index.mjs"
     }
   },
-  "files": ["dist", "src/compiler/grammar"],
+  "files": ["dist", "recipes", "src/compiler/grammar"],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsup --config tsup.config.cli.ts",
+    "dev": "tsc --watch",
     "test": "vitest",
-    "lint": "tsc --noEmit && eslint src",
-    "typecheck": "tsc --noEmit"
+    "test:ci": "vitest run",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "postinstall": "node -e \"try{require('child_process').execSync('npx playwright install chromium',{stdio:'inherit'})}catch(e){console.log('Playwright install skipped')}\"",
+    "recipe:create": "node dist/author-cli.js create-recipe",
+    "recipe:sign": "node dist/author-cli.js sign-recipe",
+    "recipe:validate": "node dist/author-cli.js validate-recipe"
   },
   "dependencies": {
-    "axios": "^1.6.0",
+    "@awi-protocol/types": "workspace:*",
     "cheerio": "^1.0.0-rc.12",
-    "cross-fetch": "^4.0.0"
+    "playwright": "^1.44.0"
   },
   "optionalDependencies": {
     "node-llama-cpp": "^3.0.0"
@@ -47,5 +58,5 @@
     "url": "https://github.com/RayAKaan/AWI.git",
     "directory": "packages/sdk"
   },
-  "keywords": ["awi", "agent-web-interface", "browser-automation", "ai-agent", "web-scraping", "deterministic", "playwright", "axir"]
+  "keywords": ["awi", "agent-web-interface", "browser-automation", "ai-agent", "web-scraping", "deterministic", "playwright", "axir", "p2p", "decentralized", "recipe"]
 }

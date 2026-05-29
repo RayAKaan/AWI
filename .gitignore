@@ -1,9 +1,6 @@
-node_modules
-dist
-.turbo
-*.tsbuildinfo
-.env
-.env.local
-*.log
-.DS_Store
-coverage
+# Test artifacts
+.awi-*/
+recipes/
+dist/
+node_modules/
+.turbo/

@@ -4,3 +4,5 @@ allowBuilds:
   esbuild: true
   msw: true
   node-llama-cpp: true
+minimumReleaseAgeExclude:
+  - '@awi-protocol/sdk@0.2.0'

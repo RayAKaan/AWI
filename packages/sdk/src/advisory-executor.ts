@@ -5,7 +5,7 @@
  * Useful when you want to control the browser yourself but use AWI selectors.
  */
 
-import type { Recipe, RecipeStep, SelectorSet, ExecutionMetrics } from './types';
+import type { SelectorSet, ExecutionMetrics } from './types';
 
 export interface LocalExecutionContext {
   document: Document;
@@ -30,7 +30,7 @@ export class AdvisoryExecutor {
   /**
    * Execute a recipe blueprint locally.
    */
-  async execute<T = unknown>(recipe: Recipe, params: Record<string, unknown>): Promise<{
+  async execute<T = unknown>(recipe: any, params: Record<string, unknown>): Promise<{
     success: boolean;
     data: T | null;
     errors: Array<{ code: string; message: string }>;
@@ -43,7 +43,7 @@ export class AdvisoryExecutor {
     try {
       // Execute steps
       for (const step of recipe.steps) {
-        const stepResult = await this._executeStep(step, params, recipe);
+        const stepResult = await this._executeStep(step as any, params, recipe as any);
 
         if (stepResult.error) {
           errors.push(stepResult.error);
@@ -81,9 +81,9 @@ export class AdvisoryExecutor {
   }
 
   private async _executeStep(
-    step: RecipeStep,
+    step: any,
     params: Record<string, unknown>,
-    recipe: Recipe
+    recipe: any
   ): Promise<{ error?: { code: string; message: string } }> {
     try {
       switch (step.type) {
@@ -151,7 +151,7 @@ export class AdvisoryExecutor {
     }
   }
 
-  private async _extractData<T>(recipe: Recipe): Promise<T | null> {
+  private async _extractData<T>(recipe: any): Promise<T | null> {
     const extraction = recipe.extraction;
     if (!extraction) return null;
 
