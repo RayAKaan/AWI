@@ -28,6 +28,16 @@ That's not a marketing description — it's what `RecipeSigner.verify()` and the
 
 ## Quickstart
 
+These packages are published on npm under the `@awi-protocol` scope:
+
+```bash
+npm install @awi-protocol/sdk
+```
+
+The published package currently sits at `1.0.1` on the npm registry, a few versions ahead of the `0.3.0` snapshot this README otherwise describes (`0.1.0` → `0.1.1` → `0.2.0` → `0.2.1` → `0.3.0` → `1.0.0` → `1.0.1` — a real, steady release history, all maintained from this repo). If you're reading the source directly rather than installing from npm, the API shapes below match what's in `main` as of this README, not necessarily `1.0.1` on the wire — worth a quick diff if precision matters for your use case.
+
+To build from source instead:
+
 ```bash
 git clone https://github.com/RayAKaan/AWI.git
 cd AWI
